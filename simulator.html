@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가격전략 시뮬레이터</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--blue:#1A3F6F;--blue2:#2563A8;--teal:#0B6E5A;--teal2:#1D9E75;--amber:#854F0B;--amber2:#EF9F27;--red:#A32D2D;--red2:#E24B4A;--bg:#F5F4F0;--surface:#fff;--border:rgba(0,0,0,.1);--text:#1A1A18;--muted:#6B6B65;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--blue);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:18px;font-weight:700;}
+header p{font-size:12px;opacity:.65;margin-top:2px;}
+.badge{font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:4px 12px;border-radius:99px;color:rgba(255,255,255,.8);}
+.step-nav{background:#fff;border-bottom:1px solid var(--border);display:flex;}
+.step-btn{flex:1;padding:14px 8px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit;}
+.step-btn .snum{width:22px;height:22px;border-radius:50%;background:#E5E4E0;color:var(--muted);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.step-btn.active{color:var(--blue2);border-bottom-color:var(--blue2);}
+.step-btn.active .snum{background:var(--blue2);color:#fff;}
+.step-btn.done .snum{background:var(--teal2);color:#fff;}
+main{max-width:780px;margin:0 auto;padding:28px 20px 60px;}
+.panel{display:none;}.panel.active{display:block;}
+.sec{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.field label{font-size:11px;font-weight:500;color:var(--muted);}
+.field input,.field select{font-size:13px;font-family:inherit;padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:#FAFAF8;color:var(--text);width:100%;}
+.brand-grid{display:flex;flex-direction:column;gap:12px;}
+.tab-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tab-btn{padding:10px 24px;font-size:13px;font-weight:500;background:transparent;border:none;border-bottom:3px solid transparent;cursor:pointer;color:var(--muted);font-family:'Noto Sans KR',sans-serif;margin-bottom:-2px;transition:color .15s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue2);font-weight:700;}
+.tab-panel{display:none !important;}.tab-panel.active{display:block !important;}
+.tab-guide{font-size:12px;color:var(--muted);background:#EEF4FC;border-radius:8px;padding:10px 14px;margin-bottom:14px;border-left:3px solid var(--blue2);}
+.brand-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.brand-card.is-me{border-color:var(--blue2);background:#EEF4FC;}
+.brand-card .btitle{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;}
+.brand-card.is-me .btitle{color:var(--blue2);}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.slider-row label{font-size:11px;color:var(--muted);min-width:100px;}
+.slider-row input[type=range]{flex:1;accent-color:var(--blue2);cursor:pointer;}
+.slider-row .val{font-size:12px;font-weight:700;min-width:24px;text-align:right;color:var(--blue2);}
+.nav-btns{display:flex;justify-content:space-between;margin-top:20px;}
+.btn{font-size:13px;font-weight:500;font-family:inherit;padding:9px 22px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);}
+.btn.primary{background:var(--blue2);color:#fff;border-color:var(--blue2);}
+.rbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rbar-row .rname{font-size:12px;font-weight:500;min-width:80px;}
+.rbar-row .rname.is-me{color:var(--blue2);}
+.rbar-wrap{flex:1;height:28px;background:#EEEEE8;border-radius:6px;overflow:hidden;}
+.rbar-fill{height:28px;border-radius:6px;display:flex;align-items:center;padding-left:10px;transition:width .5s;}
+.rbar-fill .rpct{font-size:12px;font-weight:700;color:#fff;}
+.rbar-row .rprice{font-size:12px;color:var(--muted);min-width:72px;text-align:right;}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:#EEEEE8;border-radius:10px;padding:12px 14px;text-align:center;}
+.kpi .kl{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.kpi .kv{font-size:20px;font-weight:700;}
+.kpi .kv.good{color:var(--teal);}.kpi .kv.warn{color:var(--amber);}.kpi .kv.bad{color:var(--red2);}
+.insight{font-size:13px;line-height:1.6;padding:10px 14px;border-radius:8px;margin-bottom:12px;border-left:4px solid;}
+.insight.good{background:#E6F4EE;border-color:var(--teal2);color:var(--teal);}
+.insight.warn{background:#FEF5E4;border-color:var(--amber2);color:var(--amber);}
+.insight.bad{background:#FEE8E8;border-color:var(--red2);color:var(--red);}
+.price-big{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px;}
+.price-big .amount{font-size:32px;font-weight:700;color:var(--blue2);}
+.price-big input[type=range]{width:100%;accent-color:var(--blue2);margin:10px 0;cursor:pointer;}
+.price-big .sub-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);}
+.diff-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;}
+.diff-badge.cheap{background:#E6F4EE;color:var(--teal);}
+.diff-badge.exp{background:#FEE8E8;color:var(--red);}
+.diff-badge.same{background:#EEEEE8;color:var(--muted);}
+.chart-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:14px;}
+.chart-title{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:12px;}
+footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>가격전략 시뮬레이터</h1><p>인트릭스 진단과 대응 — Price Strategy Simulation</p></div>
+  <span class="badge">중간계 온톨로지 연구소</span>
+</header>
+<nav class="step-nav">
+  <button class="step-btn active" id="snav-1" onclick="goStep(1)"><span class="snum">1</span>브랜드</button>
+  <button class="step-btn" id="snav-2" onclick="goStep(2)"><span class="snum">2</span>상권</button>
+  <button class="step-btn" id="snav-3" onclick="goStep(3)"><span class="snum">3</span>속성가중치</button>
+  <button class="step-btn" id="snav-4" onclick="goStep(4)"><span class="snum">4</span>제품선택</button>
+  <button class="step-btn" id="snav-5" onclick="goStep(5)"><span class="snum">5</span>품질가격</button>
+  <button class="step-btn" id="snav-6" onclick="goStep(6)"><span class="snum">6</span>시뮬레이션</button>
+</nav>
+<main>
+  <div class="panel active" id="panel-1">
+    <div class="sec">브랜드 설정</div>
+    <div class="brand-grid">
+      <div class="brand-card is-me">
+        <div class="btitle">내 브랜드</div>
+        <div class="g2">
+          <div class="field"><label>브랜드명</label><input type="text" id="bn-0" value="내 브랜드"></div>
+          <div class="slider-row"><label>유명도(1~10)</label><input type="range" id="fame-0" min="1" max="10" value="5" oninput="sv('fv-0',this.value)"><span class="val" id="fv-0">5</span></div>
+        </div>
+      </div>
+      <div class="brand-card">
+        <div class="btitle">경쟁 브랜드 1</div>
+        <div class="g2">
+          <div class="field"><label>브랜드명</label><input type="text" id="bn-1" value="경쟁사 A"></div>
+          <div class="slider-row"><label>유명도(1~10)</label><input type="range" id="fame-1" min="1" max="10" value="7" oninput="sv('fv-1',this.value)"><span class="val" id="fv-1">7</span></div>
+        </div>
+      </div>
+      <div class="brand-card">
+        <div class="btitle">경쟁 브랜드 2</div>
+        <div class="g2">
+          <div class="field"><label>브랜드명</label><input type="text" id="bn-2" value="경쟁사 B"></div>
+          <div class="slider-row"><label>유명도(1~10)</label><input type="range" id="fame-2" min="1" max="10" value="8" oninput="sv('fv-2',this.value)"><span class="val" id="fv-2">8</span></div>
+        </div>
+      </div>
+      <div class="brand-card">
+        <div class="btitle">경쟁 브랜드 3</div>
+        <div class="g2">
+          <div class="field"><label>브랜드명</label><input type="text" id="bn-3" value="경쟁사 C"></div>
+          <div class="slider-row"><label>유명도(1~10)</label><input type="range" id="fame-3" min="1" max="10" value="6" oninput="sv('fv-3',this.value)"><span class="val" id="fv-3">6</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-btns"><span></span><button class="btn primary" onclick="goStep(2)">다음 →</button></div>
+  </div>
+
+  <div class="panel" id="panel-2">
+    <div class="sec">상권 설정</div>
+    <div class="card">
+      <div class="field"><label>상권 유형</label>
+        <select id="area-type" onchange="areaPreset()">
+          <option value="custom">직접 설정</option>
+          <option value="office">오피스 상권</option>
+          <option value="residential">주거 상권</option>
+          <option value="university">대학가</option>
+          <option value="tourist">관광·유흥</option>
+          <option value="highway">로드사이드</option>
+        </select>
+      </div>
+    </div>
+    <div class="nav-btns"><button class="btn" onclick="goStep(1)">← 이전</button><button class="btn primary" onclick="goStep(3)">다음 →</button></div>
+  </div>
+
+  <div class="panel" id="panel-3">
+    <div class="sec">속성 가중치</div>
+    <div class="tab-guide">💡 가중치를 입력해주세요. 각 항목이 소비자 선택에 미치는 영향력을 조정합니다.</div>
+    <div class="card">
+      <div class="slider-row"><label>가격 민감도</label><input type="range" id="price-sens" min="1" max="10" value="6" oninput="sv('fv-ps',this.value)"><span class="val" id="fv-ps">6</span></div>
+      <div class="slider-row"><label>브랜드 선호도</label><input type="range" id="brand-sens" min="1" max="10" value="5" oninput="sv('fv-bs',this.value)"><span class="val" id="fv-bs">5</span></div>
+      <div class="slider-row"><label>품질 민감도</label><input type="range" id="quality-sens" min="1" max="10" value="5" oninput="sv('fv-qs',this.value)"><span class="val" id="fv-qs">5</span></div>
+    </div>
+    <div class="nav-btns"><button class="btn" onclick="goStep(2)">← 이전</button><button class="btn primary" onclick="goStep(4)">다음 →</button></div>
+  </div>
+
+  <div class="panel" id="panel-4">
+    <div class="sec">제품 선택</div>
+    <div class="card">
+      <div class="field"><label>카테고리</label>
+        <select id="prod-cat" onchange="prodPreset()">
+          <option value="">직접 입력</option>
+          <option value="coffee">커피/음료</option>
+          <option value="food">식사류</option>
+          <option value="beauty">헤어/뷰티</option>
+          <option value="fitness">피트니스</option>
+          <option value="bakery">베이커리</option>
+          <option value="retail">소매</option>
+        </select>
+      </div>
+      <div class="field"><label>제품명</label><input type="text" id="prod-name" value="아메리카노"></div>
+      <div class="g2">
+        <div class="field"><label>기준가격(원)</label><input type="number" id="base-price" value="4500"></div>
+        <div class="field"><label>시뮬레이션 범위</label>
+          <select id="price-range"><option value="30">±30%</option><option value="50" selected>±50%</option><option value="100">±100%</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-btns"><button class="btn" onclick="goStep(3)">← 이전</button><button class="btn primary" onclick="goStep(5)">다음 →</button></div>
+  </div>
+
+  <div class="panel" id="panel-5">
+    <div class="sec">브랜드별 품질 & 가격</div>
+    <div id="prod-inputs"></div>
+    <div class="nav-btns"><button class="btn" onclick="goStep(4)">← 이전</button><button class="btn primary" onclick="goStep(6)">시뮬레이션 시작 →</button></div>
+  </div>
+
+  <div class="panel" id="panel-6">
+    <div class="sec">내 가격 조절 → 선택률 변화</div>
+    <div class="price-big">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">내 가격</div>
+      <div class="amount" id="my-price-display">4,500원</div>
+      <input type="range" id="my-price-slider" min="1000" max="10000" value="4500" step="100" oninput="simCalc()">
+      <div class="sub-row">
+        <span>경쟁자 평균 대비</span>
+        <span class="diff-badge same" id="avg-diff-badge">계산 중</span>
+        <span style="margin-left:auto;">경쟁 평균: <strong id="base-ref">—</strong></span>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kl">내 선택률</div><div class="kv" id="kv-mypct">—</div></div>
+      <div class="kpi"><div class="kl">현재 1위</div><div class="kv" id="kv-winner" style="font-size:14px;">—</div></div>
+      <div class="kpi"><div class="kl">평균 대비</div><div class="kv" id="kv-diff">—</div></div>
+    </div>
+    <div id="result-bars"></div>
+    <div class="insight good" id="sim-insight">계산 중...</div>
+    <div class="chart-wrap">
+      <div class="chart-title">가격별 선택률 변화 곡선</div>
+      <div style="position:relative;width:100%;height:220px;"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">브랜드별 속성 비교(레이더)</div>
+      <div style="position:relative;width:100%;height:260px;"><canvas id="radarChart"></canvas></div>
+    </div>
+    <div class="nav-btns"><button class="btn" onclick="goStep(5)">← 이전</button><button class="btn primary" onclick="window.print()">인쇄/PDF</button></div>
+  </div>
+</main>
+<footer>가격전략 시뮬레이터 | 중간계 온톨로지 연구소</footer>
+<script>
+let LC=null,RC=null;
+function sv(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+function t(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function goStep(n){
+  if(n===5)buildInputs();
+  if(n===6)initSim();
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach((b,i)=>{b.classList.remove('active','done');if(i+1<n)b.classList.add('done');if(i+1===n)b.classList.add('active');});
+  document.getElementById('panel-'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function areaPreset(){
+  const p={office:[7,5,6],residential:[6,6,6],university:[9,4,6],tourist:[5,8,5],highway:[7,4,7],custom:[6,5,5]}[document.getElementById('area-type').value]||[6,5,5];
+  ['price-sens','brand-sens','quality-sens'].forEach((id,i)=>{document.getElementById(id).value=p[i];});
+  ['fv-ps','fv-bs','fv-qs'].forEach((id,i)=>sv(id,p[i]));
+}
+function prodPreset(){
+  const p={coffee:{n:'아메리카노',p:4500},food:{n:'점심 정식',p:9000},beauty:{n:'헤어컷',p:25000},fitness:{n:'PT 1회권',p:50000},bakery:{n:'크루아상',p:3500},retail:{n:'주력 상품',p:15000}}[document.getElementById('prod-cat').value];
+  if(p){document.getElementById('prod-name').value=p.n;document.getElementById('base-price').value=p.p;}
+}
+function buildInputs(){
+  const pn=t('prod-name')||'제품';
+  const dp=[1.0,0.85,1.1,0.95],dq=[7,6,8,5];
+  let h='';
+  for(let i=0;i<4;i++){
+    const bn=t('bn-'+i)||(i===0?'내 브랜드':'경쟁사'+i);
+    const pp=Math.round(v('base-price')*dp[i]/100)*100||v('base-price');
+    h+=`<div class="brand-card ${i===0?'is-me':''}" style="margin-bottom:10px;"><div class="btitle">${bn} — ${pn}</div><div class="g2"><div class="field"><label>가격(원)</label><input type="number" id="pp-${i}" value="${pp}" oninput="simCalc()"></div><div class="field"><label>품질(1~10)</label><input type="number" id="pq-${i}" value="${dq[i]}" min="1" max="10" oninput="simCalc()"></div></div></div>`;
+  }
+  document.getElementById('prod-inputs').innerHTML=h;
+}
+function initSim(){
+  const base=v('base-price')||4500;
+  const rng=parseInt(document.getElementById('price-range').value)||50;
+  const sl=document.getElementById('my-price-slider');
+  sl.min=Math.max(100,Math.round(base*(1-rng/100)/100)*100);
+  sl.max=Math.round(base*(1+rng/100)/100)*100;
+  sl.value=base;
+  sl.step=Math.max(100,Math.round(base*0.01/100)*100);
+  simCalc();
+}
+function getW(){
+  const ps=v('price-sens')||6,bs=v('brand-sens')||5,qs=v('quality-sens')||5,tot=ps+bs+qs;
+  return{price:ps/tot,brand:bs/tot,quality:qs/tot};
+}
+function calcU(myPrice,w){
+  const prices=[myPrice,v('pp-1'),v('pp-2'),v('pp-3')];
+  const avg=prices.reduce((a,b)=>a+b,0)/4;
+  return[0,1,2,3].map(i=>{
+    const pr=i===0?myPrice:v('pp-'+i),q=v('pq-'+i)||5,f=v('fame-'+i)||5;
+    const ps=avg>0?Math.max(1,Math.min(10,5-(((pr-avg)/avg)*5))):5;
+    return{ps,q,f,u:w.price*ps+w.brand*f+w.quality*q};
+  });
+}
+function simCalc(){
+  const mp=parseFloat(document.getElementById('my-price-slider').value)||v('base-price');
+  document.getElementById('my-price-display').textContent=mp.toLocaleString('ko-KR')+'원';
+  const w=getW();
+  const cp=[v('pp-1'),v('pp-2'),v('pp-3')].filter(p=>p>0);
+  const avgC=cp.length?cp.reduce((a,b)=>a+b,0)/cp.length:mp;
+  const dp=avgC>0?((mp-avgC)/avgC*100):0;
+  const badge=document.getElementById('avg-diff-badge');
+  if(Math.abs(dp)<1){badge.textContent='평균 수준';badge.className='diff-badge same';}
+  else if(dp<0){badge.textContent=dp.toFixed(1)+'% 저렴';badge.className='diff-badge cheap';}
+  else{badge.textContent='+'+dp.toFixed(1)+'% 비쌈';badge.className='diff-badge exp';}
+  document.getElementById('base-ref').textContent=Math.round(avgC).toLocaleString()+'원';
+  const us=calcU(mp,w);
+  const ex=us.map(u=>Math.exp(u.u)),es=ex.reduce((a,b)=>a+b,0);
+  const pcts=ex.map(e=>(e/es)*100);
+  const cols=['#2563A8','#EF9F27','#D85A30','#1D9E75'];
+  let bh='';
+  for(let i=0;i<4;i++){
+    const bn=t('bn-'+i)||(i===0?'내 브랜드':'경쟁사'+i);
+    const pr=i===0?mp:v('pp-'+i);
+    bh+=`<div class="rbar-row"><span class="rname ${i===0?'is-me':''}">${bn}</span><div class="rbar-wrap"><div class="rbar-fill" style="width:${Math.max(2,pcts[i]).toFixed(1)}%;background:${cols[i]};"><span class="rpct">${pcts[i].toFixed(1)}%</span></div></div><span class="rprice">${pr.toLocaleString()}원</span></div>`;
+  }
+  document.getElementById('result-bars').innerHTML=bh;
+  const myP=pcts[0],wi=pcts.indexOf(Math.max(...pcts)),wn=t('bn-'+wi)||(wi===0?'내 브랜드':'경쟁사'+wi);
+  const kv=document.getElementById('kv-mypct');
+  kv.textContent=myP.toFixed(1)+'%';kv.className='kv '+(myP>=35?'good':myP>=22?'warn':'bad');
+  document.getElementById('kv-winner').textContent=wn;
+  const kd=document.getElementById('kv-diff');
+  kd.textContent=(dp>=0?'+':'')+dp.toFixed(1)+'%';kd.className='kv '+(dp<=0?'good':dp<=15?'warn':'bad');
+  const ib=document.getElementById('sim-insight'),mn=t('bn-0')||'내 브랜드';
+  if(wi===0){ib.className='insight good';ib.textContent=`${mn} 선택률 ${myP.toFixed(1)}% 1위 — 경쟁 평균보다 ${Math.abs(dp).toFixed(1)}% ${dp<=0?'저렴한':'비싼'} 가격에서도 우위입니다.`;}
+  else if(myP>=22){ib.className='insight warn';ib.textContent=`${mn} 선택률 ${myP.toFixed(1)}% — ${wn}에 밀립니다. 가격 조정 또는 품질·브랜드 강화가 필요합니다.`;}
+  else{ib.className='insight bad';ib.textContent=`${mn} 선택률 ${myP.toFixed(1)}% — 경쟁력이 낮습니다. 가격(${mp.toLocaleString()}원)과 차별점을 재검토하세요.`;}
+  drawLine(mp,w);drawRadar(us);
+}
+function drawLine(mp,w){
+  const base=v('base-price')||mp,rng=parseInt(document.getElementById('price-range').value)||50;
+  const minP=Math.max(100,Math.round(base*(1-rng/100)/100)*100),maxP=Math.round(base*(1+rng/100)/100)*100;
+  const step=Math.max(100,Math.round((maxP-minP)/20/100)*100);
+  const labels=[],data=[];
+  for(let p=minP;p<=maxP;p+=step){
+    const us=calcU(p,w),ex=us.map(u=>Math.exp(u.u)),es=ex.reduce((a,b)=>a+b,0);
+    labels.push(p.toLocaleString());data.push(parseFloat((ex[0]/es*100).toFixed(1)));
+  }
+  const ci=labels.findIndex(l=>l===mp.toLocaleString());
+  const pc=labels.map((_,i)=>i===ci?'#E24B4A':'#2563A8'),pr=labels.map((_,i)=>i===ci?7:3);
+  const cfg={labels,datasets:[{data,borderColor:'#2563A8',backgroundColor:'rgba(37,99,168,0.08)',fill:true,tension:0.35,pointRadius:pr,pointBackgroundColor:pc,borderWidth:2}]};
+  if(LC){LC.data=cfg;LC.update('none');return;}
+  LC=new Chart(document.getElementById('lineChart'),{type:'line',data:cfg,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'선택률: '+c.parsed.y+'%'}}},scales:{x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:10}},y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}}}});
+}
+function drawRadar(us){
+  const labels=['가격경쟁력','품질','브랜드'];
+  const cols=['#2563A8','#EF9F27','#D85A30','#1D9E75'],bgs=['rgba(37,99,168,0.1)','rgba(239,159,39,0.1)','rgba(216,90,48,0.08)','rgba(29,158,117,0.08)'];
+  const ds=[0,1,2,3].map(i=>({label:t('bn-'+i)||(i===0?'내 브랜드':'경쟁사'+i),data:[us[i].ps,us[i].q,us[i].f],borderColor:cols[i],backgroundColor:bgs[i],pointBackgroundColor:cols[i],borderWidth:2,pointRadius:4}));
+  const cfg={labels,datasets:ds};
+  if(RC){RC.data=cfg;RC.update('none');return;}
+  RC=new Chart(document.getElementById('radarChart'),{type:'radar',data:cfg,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10,padding:12}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:10}},pointLabels:{font:{size:11}}}}}});
+}
+</script>
+</body>
+</html>
