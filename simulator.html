@@ -75,12 +75,32 @@ main{max-width:780px;margin:0 auto;padding:28px 20px 60px;}
 .chart-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:14px;}
 .chart-title{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:12px;}
 footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);}
+.auth-gate{position:fixed;inset:0;background:linear-gradient(145deg,#1A3F6F,#2563A8);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;}
+.auth-card{width:100%;max-width:360px;background:#fff;border-radius:12px;border:1px solid var(--border);padding:22px 20px;box-shadow:0 10px 28px rgba(0,0,0,.18);}
+.auth-title{font-size:18px;font-weight:700;color:var(--blue);margin-bottom:8px;}
+.auth-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;}
+.auth-error{min-height:16px;font-size:12px;color:var(--red2);margin-top:8px;}
+.app-content{display:none;}
+.app-content.unlocked{display:block;}
 </style>
 </head>
 <body>
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-title">접근 비밀번호</div>
+    <div class="auth-desc">비밀번호를 입력하면 시뮬레이터가 열립니다.</div>
+    <div class="field">
+      <label for="auth-password">비밀번호</label>
+      <input type="password" id="auth-password" placeholder="비밀번호 입력" autocomplete="off">
+    </div>
+    <button class="btn primary" id="auth-submit" style="width:100%;margin-top:6px;">열기</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+<div class="app-content" id="app-content">
 <header>
   <div><h1>가격전략 시뮬레이터</h1><p>인트릭스 진단과 대응 — Price Strategy Simulation</p></div>
-  <span class="badge">중간계 온톨로지 연구소</span>
+  <span class="badge">중간계 인트릭스 연구소</span>
 </header>
 <nav class="step-nav">
   <button class="step-btn active" id="snav-1" onclick="goStep(1)"><span class="snum">1</span>브랜드</button>
@@ -215,12 +235,32 @@ footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-t
     <div class="nav-btns"><button class="btn" onclick="goStep(5)">← 이전</button><button class="btn primary" onclick="window.print()">인쇄/PDF</button></div>
   </div>
 </main>
-<footer>가격전략 시뮬레이터 | 중간계 온톨로지 연구소</footer>
+<footer>가격전략 시뮬레이터 | 중간계 인트릭스 연구소</footer>
+</div>
 <script>
 let LC=null,RC=null;
+const ACCESS_PASSWORD='intrix260501';
 function sv(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
 function v(id){return parseFloat(document.getElementById(id).value)||0;}
 function t(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function unlockPage(){
+  const gate=document.getElementById('auth-gate');
+  const app=document.getElementById('app-content');
+  gate.style.display='none';
+  app.classList.add('unlocked');
+}
+function checkPassword(){
+  const input=document.getElementById('auth-password');
+  const err=document.getElementById('auth-error');
+  if(input.value===ACCESS_PASSWORD){
+    err.textContent='';
+    unlockPage();
+    return;
+  }
+  err.textContent='비밀번호가 일치하지 않습니다.';
+  input.focus();
+  input.select();
+}
 function goStep(n){
   if(n===5)buildInputs();
   if(n===6)initSim();
@@ -330,6 +370,9 @@ function drawRadar(us){
   if(RC){RC.data=cfg;RC.update('none');return;}
   RC=new Chart(document.getElementById('radarChart'),{type:'radar',data:cfg,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10,padding:12}}},scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:10}},pointLabels:{font:{size:11}}}}}});
 }
+document.getElementById('auth-submit').addEventListener('click',checkPassword);
+document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')checkPassword();});
+document.getElementById('auth-password').focus();
 </script>
 </body>
 </html>
